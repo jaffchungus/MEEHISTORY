@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %}MEEHISTORY{% if character %} – Meet {{ character.name }}{% endif %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="logo">MEEHISTORY</div>
+        {% if character %}
+          <div class="character-badge">
+            <span class="label">Now meeting</span>
+            <span class="name">{{ character.name }}</span>
+          </div>
+        {% endif %}
+      </header>
+      <main class="app-main">
+        {% block content %}{% endblock %}
+      </main>
+      <footer class="app-footer">
+        <span>Surreal conversations with history.</span>
+      </footer>
+    </div>
+    <script>
+      window.MEEHISTORY_CONFIG = {
+        characterId: "{{ character_id|e if character_id is defined else '' }}",
+        characterName: "{{ character.name|e if character is defined else '' }}"
+      };
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  </body>
+</html>
