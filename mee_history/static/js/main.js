@@ -5,6 +5,20 @@
   const ttsLangHint = config.ttsLangHint || "";
   const ttsVoiceKeyword = config.ttsVoiceKeyword || "";
   const introLine = config.introLine || "";
+  const VOICE_STYLES = {
+    einstein: { rate: 0.9, pitch: 0.85, volume: 0.95 },
+    curie: { rate: 1.0, pitch: 1.08, volume: 0.9 },
+    tesla: { rate: 0.97, pitch: 0.95, volume: 1.0 },
+    davinci: { rate: 0.98, pitch: 0.92, volume: 0.95 },
+    lovelace: { rate: 1.02, pitch: 1.05, volume: 0.92 },
+    cleopatra: { rate: 0.99, pitch: 1.0, volume: 0.96 },
+    socrates: { rate: 0.94, pitch: 0.9, volume: 0.98 },
+    shakespeare: { rate: 0.96, pitch: 0.93, volume: 0.94 },
+    siri: { rate: 1.03, pitch: 1.0, volume: 1.0 },
+    ara: { rate: 1.0, pitch: 0.98, volume: 1.0 },
+    guide: { rate: 0.95, pitch: 0.88, volume: 1.0 },
+    futurist: { rate: 1.02, pitch: 1.02, volume: 1.0 },
+  };
 
   let localStream = null;
   let inCall = false;
@@ -14,6 +28,7 @@
   // Speech recognition state
   let recognition = null;
   let isRecognizing = false;
+  let shouldKeepListening = false;
   let lastFinalTranscript = "";
 
   const userVideo = document.getElementById("userVideo");
@@ -52,7 +67,7 @@
         setStatus("This browser does not support real-time camera access.");
       }
 
-      setStatus("You are now in a surreal call with " + characterName + ". Tap the mic to speak.");
+      setStatus("You are now in a surreal call with " + characterName + ". Tap the mic to start speaking, tap again when finished.");
       if (introLine && !conversationHistory.some((item) => item.role === "assistant")) {
         await speakCharacterReply(introLine);
       }
@@ -103,23 +118,21 @@
 
     recognition = new SR();
     recognition.lang = ttsLangHint || "en-US";
+    recognition.continuous = true;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
     recognition.onstart = function () {
       isRecognizing = true;
-      if (micButton) {
-        micButton.classList.add("listening");
-      }
-      setStatus("Listening…");
+      updateMicVisual(true);
+      setStatus("Listening… speak as long as you like, then tap the button to finish.");
     };
 
     recognition.onerror = function (event) {
       console.error("Speech recognition error", event);
       isRecognizing = false;
-      if (micButton) {
-        micButton.classList.remove("listening");
-      }
+      shouldKeepListening = false;
+      updateMicVisual(false);
       setTranscript("");
       setStatus("Didn't quite catch that. Try again.");
     };
@@ -143,28 +156,40 @@
     };
 
     recognition.onend = function () {
-      if (!isRecognizing) {
-        if (micButton) {
-          micButton.classList.remove("listening");
+      isRecognizing = false;
+      if (shouldKeepListening) {
+        try {
+          recognition.start();
+        } catch (err) {
+          console.error("Failed to resume recognition", err);
+          shouldKeepListening = false;
+          updateMicVisual(false);
         }
         return;
       }
-
-      isRecognizing = false;
-      if (micButton) {
-        micButton.classList.remove("listening");
-      }
-
+      updateMicVisual(false);
       const text = (lastFinalTranscript || "").trim();
       lastFinalTranscript = "";
       setTranscript("");
 
       if (!text) {
-        setStatus("No speech detected. Try again.");
+        setStatus("No speech detected. Tap the mic again to retry.");
         return;
       }
       handleRecognizedText(text);
     };
+  }
+
+  function updateMicVisual(listeningState) {
+    if (!micButton) return;
+    const active = typeof listeningState === "boolean" ? listeningState : shouldKeepListening;
+    if (active) {
+      micButton.classList.add("listening");
+      micButton.textContent = "Tap to finish";
+    } else {
+      micButton.classList.remove("listening");
+      micButton.textContent = "Tap to talk";
+    }
   }
 
   function startListening() {
@@ -172,22 +197,29 @@
       setStatus("Speech recognition is not available in this browser.");
       return;
     }
-    if (isRecognizing) {
+    if (shouldKeepListening) {
+      shouldKeepListening = false;
+      setStatus("Processing what you said…");
+      updateMicVisual(false);
       stopListening();
       return;
     }
+    shouldKeepListening = true;
     lastFinalTranscript = "";
+    updateMicVisual(true);
     try {
       recognition.lang = ttsLangHint || "en-US";
       recognition.start();
     } catch (err) {
       console.error("Failed to start speech recognition", err);
+      shouldKeepListening = false;
+      updateMicVisual(false);
       setStatus("Unable to start listening. Please try again.");
     }
   }
 
   function stopListening() {
-    if (recognition && isRecognizing) {
+    if (recognition) {
       try {
         recognition.stop();
       } catch (err) {
@@ -321,9 +353,12 @@
       if (voice) {
         utterance.voice = voice;
       }
-
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
+      const profile = VOICE_STYLES[characterId] || {};
+      const rateVariation = ((Math.random() - 0.5) * 0.04);
+      const pitchVariation = ((Math.random() - 0.5) * 0.05);
+      utterance.rate = profile.rate ? profile.rate + rateVariation : 1.0 + rateVariation;
+      utterance.pitch = profile.pitch ? profile.pitch + pitchVariation : 1.0 + pitchVariation;
+      utterance.volume = profile.volume ?? 1.0;
 
       utterance.onstart = function () {
         startAvatarSpeaking(text);
