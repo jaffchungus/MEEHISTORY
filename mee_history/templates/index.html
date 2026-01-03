@@ -6,17 +6,20 @@
 <div class="call-layout">
   <section class="video-stage">
     <div class="video-row">
-      <div class="video-tile remote">
+      <div class="video-tile remote" id="remoteTile">
         <div class="video-label">{{ character.name }}</div>
         {% if character.avatar_video_url %}
-        <video id="einsteinVideo" class="video-element" autoplay loop muted playsinline poster="{{ character.avatar_image_url }}">
+        <video id="remoteVideo" class="video-element" autoplay loop muted playsinline poster="{{ character.avatar_image_url }}">
           <source src="{{ character.avatar_video_url }}" type="video/mp4">
         </video>
         {% else %}
-        <div class="avatar-placeholder" id="einsteinAvatar">
+        <div class="avatar-placeholder" id="remoteAvatar">
           <img src="{{ character.avatar_image_url }}" alt="{{ character.name }}" />
         </div>
         {% endif %}
+        <div class="avatar-render-layer">
+          <div class="avatar-mouth" id="avatarMouth"></div>
+        </div>
       </div>
       <div class="video-tile local">
         <div class="video-label">You</div>
@@ -24,25 +27,11 @@
       </div>
     </div>
     <div class="call-controls">
+      <button id="micButton" class="btn btn-primary">Tap to talk</button>
       <button id="endCallButton" class="btn btn-danger">End call</button>
     </div>
-  </section>
-  <section class="chat-panel">
-    <div class="chat-header">
-      <h2>Conversation</h2>
-      <p class="chat-subtitle">
-        Ask {{ character.name }} anything about physics, ideas, or life. The call starts automatically.
-      </p>
-    </div>
-    <div id="chatLog" class="chat-log" aria-live="polite"></div>
-    <form id="chatForm" class="chat-form">
-      <label for="userMessage" class="visually-hidden">Your message</label>
-      <textarea id="userMessage" name="message" rows="2" placeholder="Ask a question…"></textarea>
-      <div class="chat-actions">
-        <button type="submit" class="btn btn-primary">Ask</button>
-      </div>
-    </form>
     <div id="statusMessage" class="status-message" role="status" aria-live="polite"></div>
+    <div id="transcriptOverlay" class="transcript-overlay" aria-live="polite"></div>
   </section>
 </div>
 {% endblock %}

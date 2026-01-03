@@ -11,12 +11,54 @@
       <header class="app-header">
         <div class="logo">MEEHISTORY</div>
         {% if character %}
-          <div class="character-badge">
+          <div
+            class="character-badge"
+            id="characterPickerToggle"
+            tabindex="0"
+            role="button"
+            aria-haspopup="dialog"
+          >
             <span class="label">Now meeting</span>
             <span class="name">{{ character.name }}</span>
           </div>
         {% endif %}
       </header>
+      {% if characters %}
+      <div class="character-modal-backdrop" id="characterModalBackdrop" hidden>
+        <div class="character-modal" id="characterModal" role="dialog" aria-modal="true" aria-labelledby="characterModalTitle">
+          <div class="character-modal-header">
+            <h2 id="characterModalTitle">Choose who to meet</h2>
+            <button type="button" class="character-modal-close" id="characterModalClose" aria-label="Close picker">&times;</button>
+          </div>
+          <div class="character-modal-body">
+            <input
+              type="text"
+              id="characterSearchInput"
+              class="character-search-input"
+              placeholder="Search figures and voices..."
+              autocomplete="off"
+            />
+            <div class="character-list" id="characterList">
+              {% for c in characters %}
+              <button
+                type="button"
+                class="character-option"
+                data-id="{{ c.id }}"
+                data-name="{{ c.name }}"
+                data-bio="{{ c.short_bio }}"
+              >
+                <div class="character-option-main">
+                  <span class="character-option-name">{{ c.name }}</span>
+                  <span class="character-option-tag">{{ c.id }}</span>
+                </div>
+                <div class="character-option-bio">{{ c.short_bio }}</div>
+              </button>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
       <main class="app-main">
         {% block content %}{% endblock %}
       </main>
@@ -27,7 +69,9 @@
     <script>
       window.MEEHISTORY_CONFIG = {
         characterId: "{{ character_id|e if character_id is defined else '' }}",
-        characterName: "{{ character.name|e if character is defined else '' }}"
+        characterName: "{{ character.name|e if character is defined else '' }}",
+        ttsLangHint: "{{ character.tts_lang_hint|e if character is defined and character.tts_lang_hint is not none else '' }}",
+        ttsVoiceKeyword: "{{ character.tts_voice_keyword|e if character is defined and character.tts_voice_keyword is not none else '' }}"
       };
     </script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
