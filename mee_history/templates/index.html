@@ -8,6 +8,22 @@
     <div class="video-row">
       <div class="video-tile remote" id="remoteTile">
         <div class="video-label">{{ character.name }}</div>
+        <div class="avatar-hologram" aria-hidden="true">
+          <div class="avatar-holo-core">
+            <div class="avatar-holo-head">
+              <span class="avatar-holo-hair"></span>
+              <span class="avatar-holo-face">
+                <span class="avatar-holo-eyes"></span>
+                <span class="avatar-holo-mouth"></span>
+              </span>
+            </div>
+            <div class="avatar-holo-body">
+              <span class="avatar-holo-shoulders"></span>
+              <span class="avatar-holo-torso"></span>
+            </div>
+          </div>
+          <div class="avatar-holo-glow"></div>
+        </div>
         {% if character.avatar_video_url %}
         <video id="remoteVideo" class="video-element" autoplay loop muted playsinline poster="{{ character.avatar_image_url }}">
           <source src="{{ character.avatar_video_url }}" type="video/mp4">

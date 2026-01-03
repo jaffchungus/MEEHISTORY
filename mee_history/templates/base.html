@@ -71,7 +71,8 @@
         characterId: "{{ character_id|e if character_id is defined else '' }}",
         characterName: "{{ character.name|e if character is defined else '' }}",
         ttsLangHint: "{{ character.tts_lang_hint|e if character is defined and character.tts_lang_hint is not none else '' }}",
-        ttsVoiceKeyword: "{{ character.tts_voice_keyword|e if character is defined and character.tts_voice_keyword is not none else '' }}"
+        ttsVoiceKeyword: "{{ character.tts_voice_keyword|e if character is defined and character.tts_voice_keyword is not none else '' }}",
+        introLine: "{% if character %}{{ ('Greetings, I am ' ~ character.name ~ '. ' ~ character.short_bio)|e }}{% else %}{% endif %}"
       };
     </script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

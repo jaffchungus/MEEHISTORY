@@ -4,6 +4,7 @@
   const characterName = config.characterName || "Albert Einstein";
   const ttsLangHint = config.ttsLangHint || "";
   const ttsVoiceKeyword = config.ttsVoiceKeyword || "";
+  const introLine = config.introLine || "";
 
   let localStream = null;
   let inCall = false;
@@ -52,6 +53,9 @@
       }
 
       setStatus("You are now in a surreal call with " + characterName + ". Tap the mic to speak.");
+      if (introLine && !conversationHistory.some((item) => item.role === "assistant")) {
+        await speakCharacterReply(introLine);
+      }
     } catch (err) {
       console.error("Error starting call", err);
       setStatus("Could not access camera or microphone. Check browser permissions.");
